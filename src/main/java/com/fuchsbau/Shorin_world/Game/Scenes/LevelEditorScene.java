@@ -1,9 +1,11 @@
 package com.fuchsbau.Shorin_world.Game.Scenes;
 
 
+import com.fuchsbau.Shorin_world.Game.Renderer.Texture;
 import com.fuchsbau.Shorin_world.Game.UI.Camera;
 import com.fuchsbau.Shorin_world.Game.UI.MouseListener;
-import com.fuchsbau.Shorin_world.Game.renderer.Shader;
+import com.fuchsbau.Shorin_world.Game.Util.Time;
+import com.fuchsbau.Shorin_world.Game.Renderer.Shader;
 import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
 
@@ -20,6 +22,7 @@ public class LevelEditorScene extends Scene {
     private int vertexID, fragmentID, shaderProgram;
 
     private Shader defaultShader;
+    private Texture testTexture;
 
     private float[] vertexArray = {
             //position                  //color
@@ -28,7 +31,6 @@ public class LevelEditorScene extends Scene {
             50.5f, 50.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,   //Top Right     2
             -50.5f, -50.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, //Bottom left   3
     };
-
 
     //COUNTER-CLOCKWISE
     private int[] elementArray = {
@@ -40,21 +42,29 @@ public class LevelEditorScene extends Scene {
     private int vaoID, vboID, eboID;
 
     public LevelEditorScene() {
-        System.out.println("LevelEditorScene");
         defaultShader = new Shader("resources/shaders/default.glsl");
         defaultShader.compile();
     }
 
     @Override
     public void update(float deltaTime) {
-        if(MouseListener.isDragging()){
-            MouseListener.getInstance().updateCamera(this.camera, deltaTime);
+        if (MouseListener.isDragging()) {
+            MouseListener.updateCamera(this.camera, deltaTime);
         }
+/*
+        //uplaod Texture
+        defaultShader.uploadTexture("TEX_SAMPLER", 0);
+        glActiveTexture(GL_TEXTURE0);
+        testTexture.bind();
+
+ */
+
 
 
         defaultShader.use();
         defaultShader.uploadMat4f("uProjection", camera.getProjectionMatrix());
         defaultShader.uploadMat4f("uView", camera.getViewMatrix());
+        defaultShader.uploadFloat("uTime", Time.getTime());
 
         //Bind the VAO
         glBindVertexArray(vaoID);
@@ -81,6 +91,8 @@ public class LevelEditorScene extends Scene {
         defaultShader.uploadMat4f("uProjection", camera.getProjectionMatrix());
         defaultShader.uploadMat4f("uView", camera.getViewMatrix());
 
+        testTexture = new Texture("resources/images/corner.png");
+
 
         //Generate VAO, VBO and EBO Buffer
         vaoID = glGenVertexArrays();
@@ -106,12 +118,20 @@ public class LevelEditorScene extends Scene {
         // Add the vertex attribute pointers
         int positionsSize = 3;
         int colorsSize = 4;
-        int floatSizeBytes = 4;
+        //int uvSize = 2;
+        int floatSizeBytes = 4/*(positionsSize + colorsSize) * Float.BYTES*/;
         int vertexSizeBytes = (positionsSize + colorsSize) * floatSizeBytes;
         glVertexAttribPointer(0, positionsSize, GL_FLOAT, false, vertexSizeBytes, 0);
         glEnableVertexAttribArray(0);
 
         glVertexAttribPointer(1, colorsSize, GL_FLOAT, false, vertexSizeBytes, positionsSize * floatSizeBytes);
+       //glVertexAttribPointer(1, colorsSize, GL_FLOAT, false, vertexSizeBytes, positionsSize * Float.BYTES);
+        glEnableVertexAttribArray(1);
+/*
+        glVertexAttribPointer(2, uvSize, GL_FLOAT, false, vertexSizeBytes, (positionsSize + colorsSize) * Float.BYTES);
+        glEnableVertexAttribArray(2);
+
+ */
 
     }
 }
